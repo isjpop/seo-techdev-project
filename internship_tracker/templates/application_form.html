@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}{% if application %}Edit{% else %}New{% endif %} Application - Internship Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{% if application %}Edit Application{% else %}New Application{% endif %}</h1>
+</div>
+
+<div class="form-container">
+    <form method="POST" class="app-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="company_name">Company Name *</label>
+                <input type="text" id="company_name" name="company_name" value="{{ data.get('company_name', '') }}" required class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="position">Position *</label>
+                <input type="text" id="position" name="position" value="{{ data.get('position', '') }}" required class="form-input">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" id="location" name="location" value="{{ data.get('location', '') }}" class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="salary">Salary</label>
+                <input type="text" id="salary" name="salary" value="{{ data.get('salary', '') }}" class="form-input" placeholder="e.g. $45/hr">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="application_date">Application Date</label>
+                <input type="date" id="application_date" name="application_date" value="{{ data.get('application_date', '') }}" class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="deadline">Deadline</label>
+                <input type="date" id="deadline" name="deadline" value="{{ data.get('deadline', '') }}" class="form-input">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="status">Status</label>
+                <select id="status" name="status" class="form-select">
+                    {% set statuses = ['Applied', 'Under Review', 'Phone Screen', 'Interview', 'Offer', 'Rejected', 'Withdrawn'] %}
+                    {% for s in statuses %}
+                    <option value="{{ s }}" {% if data.get('status', 'Applied') == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="job_link">Job Link</label>
+                <input type="url" id="job_link" name="job_link" value="{{ data.get('job_link', '') }}" class="form-input" placeholder="https://">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="recruiter_name">Recruiter Name</label>
+                <input type="text" id="recruiter_name" name="recruiter_name" value="{{ data.get('recruiter_name', '') }}" class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="recruiter_email">Recruiter Email</label>
+                <input type="email" id="recruiter_email" name="recruiter_email" value="{{ data.get('recruiter_email', '') }}" class="form-input">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" rows="4" class="form-textarea">{{ data.get('notes', '') }}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">{% if application %}Update{% else %}Create{% endif %} Application</button>
+            <a href="{{ url_for('applications.list_applications') }}" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        initFormValidation('.app-form');
+    });
+</script>
+{% endblock %}

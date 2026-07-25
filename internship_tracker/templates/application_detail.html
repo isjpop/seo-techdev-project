@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}{{ application.company_name }} - Internship Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-row">
+        <div>
+            <h1>{{ application.company_name }}</h1>
+            <p class="page-subtitle">{{ application.position }}{% if application.location %} · {{ application.location }}{% endif %}</p>
+        </div>
+        <div class="header-actions">
+            <a href="{{ url_for('applications.edit_application', app_id=application.id) }}" class="btn btn-secondary">Edit</a>
+            <form method="POST" action="{{ url_for('applications.delete_application', app_id=application.id) }}" class="inline-form" onsubmit="return confirm('Delete this application?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="card detail-main">
+        <div class="detail-section">
+            <h3>Application Details</h3>
+            <dl class="detail-list">
+                <dt>Status</dt>
+                <dd><span class="badge badge-{{ application.status|lower|replace(' ', '-') }}">{{ application.status }}</span></dd>
+                <dt>Applied</dt>
+                <dd>{{ application.application_date.strftime('%B %d, %Y') if application.application_date else '—' }}</dd>
+                <dt>Deadline</dt>
+                <dd>{{ application.deadline.strftime('%B %d, %Y') if application.deadline else '—' }}</dd>
+                <dt>Salary</dt>
+                <dd>{{ application.salary or '—' }}</dd>
+                {% if application.job_link %}
+                <dt>Job Link</dt>
+                <dd><a href="{{ application.job_link }}" target="_blank" rel="noopener">{{ application.job_link }}</a></dd>
+                {% endif %}
+            </dl>
+        </div>
+
+        {% if application.notes %}
+        <div class="detail-section">
+            <h3>Notes</h3>
+            <p class="notes-text">{{ application.notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>Recruiter</h3>
+        {% if application.recruiter_name %}
+        <dl class="detail-list">
+            <dt>Name</dt>
+            <dd>{{ application.recruiter_name }}</dd>
+            {% if application.recruiter_email %}
+            <dt>Email</dt>
+            <dd><a href="mailto:{{ application.recruiter_email }}">{{ application.recruiter_email }}</a></dd>
+            {% endif %}
+        </dl>
+        {% else %}
+        <p class="empty-state">No recruiter information</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card" style="margin-top: 1.5rem;">
+    <div class="card-header">
+        <h3>Interview Timeline</h3>
+        <button class="btn btn-sm btn-primary" onclick="toggleModal('interviewModal')">+ Add Interview</button>
+    </div>
+
+    {% if interviews %}
+    <div class="timeline">
+        {% for interview in interviews %}
+        <div class="timeline-item">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+                <div class="timeline-header">
+                    <strong>{{ interview.type }}</strong>
+                    <span class="date-badge">{{ interview.date.strftime('%b %d, %Y %I:%M %p') }}</span>
+                </div>
+                {% if interview.location %}
+                <p class="timeline-location">{{ interview.location }}</p>
+                {% endif %}
+                {% if interview.notes %}
+                <p class="timeline-notes">{{ interview.notes }}</p>
+                {% endif %}
+                <form method="POST" action="{{ url_for('applications.delete_interview', app_id=application.id, interview_id=interview.id) }}" class="inline-form" onsubmit="return confirm('Remove this interview?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline btn-danger-text">Remove</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-state">No interviews scheduled yet</p>
+    {% endif %}
+</div>
+
+{% if application.documents %}
+<div class="card" style="margin-top: 1.5rem;">
+    <h3>Documents</h3>
+    <ul class="doc-list">
+        {% for doc in application.documents %}
+        <li>
+            <span>{{ doc.original_filename }}</span>
+            <span class="badge">{{ doc.document_type|replace('_', ' ')|title }}</span>
+            <a href="{{ url_for('documents.download_document', doc_id=doc.id) }}" class="btn btn-sm btn-outline">Download</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="modal" id="interviewModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Interview</h3>
+            <button class="modal-close" onclick="toggleModal('interviewModal')">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('applications.add_interview', app_id=application.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label for="date">Date &amp; Time</label>
+                <input type="datetime-local" id="date" name="date" required class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="type">Type</label>
+                <select id="type" name="type" class="form-select">
+                    {% for t in interview_types %}
+                    <option value="{{ t }}">{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" id="location" name="location" class="form-input" placeholder="Virtual / Office address">
+            </div>
+            <div class="form-group">
+                <label for="interview_notes">Notes</label>
+                <textarea id="interview_notes" name="notes" rows="3" class="form-textarea"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Add Interview</button>
+                <button type="button" class="btn btn-outline" onclick="toggleModal('interviewModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

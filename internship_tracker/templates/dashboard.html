@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Internship Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Dashboard</h1>
+    <p class="page-subtitle">Your recruiting progress at a glance</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_applications }}</div>
+        <div class="stat-label">Total Applications</div>
+    </div>
+    <div class="stat-card stat-blue">
+        <div class="stat-value">{{ stats.interviews_scheduled }}</div>
+        <div class="stat-label">Interviews Scheduled</div>
+    </div>
+    <div class="stat-card stat-green">
+        <div class="stat-value">{{ stats.offers }}</div>
+        <div class="stat-label">Offers</div>
+    </div>
+    <div class="stat-card stat-red">
+        <div class="stat-value">{{ stats.rejections }}</div>
+        <div class="stat-label">Rejections</div>
+    </div>
+    <div class="stat-card stat-purple">
+        <div class="stat-value">{{ stats.response_rate }}%</div>
+        <div class="stat-label">Response Rate</div>
+    </div>
+</div>
+
+<div class="charts-grid">
+    <div class="card chart-card">
+        <h3>Application Status</h3>
+        <canvas id="statusChart"></canvas>
+    </div>
+    <div class="card chart-card">
+        <h3>Applications by Month</h3>
+        <canvas id="monthChart"></canvas>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <div class="card-header">
+            <h3>Recent Applications</h3>
+            <a href="{{ url_for('applications.list_applications') }}" class="link-sm">View all</a>
+        </div>
+        {% if recent_applications %}
+        <ul class="activity-list">
+            {% for app in recent_applications %}
+            <li>
+                <a href="{{ url_for('applications.detail', app_id=app.id) }}">
+                    <strong>{{ app.company_name }}</strong> — {{ app.position }}
+                </a>
+                <span class="badge badge-{{ app.status|lower|replace(' ', '-') }}">{{ app.status }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="empty-state">No applications yet. <a href="{{ url_for('applications.create_application') }}">Add one</a></p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Upcoming Deadlines</h3>
+        </div>
+        {% if upcoming_deadlines %}
+        <ul class="activity-list">
+            {% for app in upcoming_deadlines %}
+            <li>
+                <strong>{{ app.company_name }}</strong>
+                <span class="date-badge">{{ app.deadline.strftime('%b %d, %Y') }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="empty-state">No upcoming deadlines</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Upcoming Interviews</h3>
+        </div>
+        {% if upcoming_interviews %}
+        <ul class="activity-list">
+            {% for interview in upcoming_interviews %}
+            <li>
+                <strong>{{ interview.application.company_name }}</strong> — {{ interview.type }}
+                <span class="date-badge">{{ interview.date.strftime('%b %d, %Y %I:%M %p') }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="empty-state">No upcoming interviews</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Recent Recruiter Contacts</h3>
+        </div>
+        {% if recent_recruiters %}
+        <ul class="activity-list">
+            {% for app in recent_recruiters %}
+            <li>
+                <strong>{{ app.recruiter_name }}</strong> at {{ app.company_name }}
+                {% if app.recruiter_email %}
+                <br><small>{{ app.recruiter_email }}</small>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="empty-state">No recruiter contacts recorded</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if interview_timeline %}
+<div class="card" style="margin-top: 1.5rem;">
+    <h3>Interview Timeline</h3>
+    <canvas id="timelineChart"></canvas>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const statusLabels = {{ status_labels | tojson }};
+    const statusValues = {{ status_values | tojson }};
+    const monthLabels = {{ month_labels | tojson }};
+    const monthValues = {{ month_values | tojson }};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initDashboardCharts(statusLabels, statusValues, monthLabels, monthValues);
+    });
+</script>
+{% endblock %}

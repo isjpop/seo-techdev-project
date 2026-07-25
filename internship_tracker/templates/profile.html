@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Internship Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Profile</h1>
+    <p class="page-subtitle">Your account and connected services</p>
+</div>
+
+<div class="profile-grid">
+    <div class="card profile-card">
+        <div class="profile-header">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture }}" alt="{{ user.name }}" class="profile-avatar">
+            {% else %}
+            <div class="profile-avatar-placeholder">{{ user.name[0] }}</div>
+            {% endif %}
+            <div>
+                <h2>{{ user.name }}</h2>
+                <p>{{ user.email }}</p>
+                <small>Member since {{ user.created_at.strftime('%B %Y') }}</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Connected Accounts</h3>
+        </div>
+        <div class="connected-accounts">
+            <div class="account-item">
+                <span class="account-icon">GitHub</span>
+                {% if user.github_id %}
+                <span class="account-status connected">Connected as @{{ user.github_username or user.github_id }}</span>
+                {% else %}
+                <a href="{{ url_for('auth.connect_github') }}" class="btn btn-sm btn-outline">Connect GitHub</a>
+                {% endif %}
+            </div>
+            <div class="account-item">
+                <span class="account-icon">LinkedIn</span>
+                {% if user.linkedin_id %}
+                <span class="account-status connected">Connected</span>
+                {% else %}
+                <a href="{{ url_for('auth.connect_linkedin') }}" class="btn btn-sm btn-outline">Connect LinkedIn</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if github_data %}
+<div class="card" style="margin-top: 1.5rem;">
+    <h3>GitHub Profile</h3>
+    <dl class="detail-list">
+        <dt>Name</dt>
+        <dd>{{ github_data.get('name', '—') }}</dd>
+        <dt>Username</dt>
+        <dd>@{{ github_data.get('username', '—') }}</dd>
+        <dt>Email</dt>
+        <dd>{{ github_data.get('email', '—') }}</dd>
+        <dt>Public Repositories</dt>
+        <dd>{{ github_data.get('repo_count', 0) }}</dd>
+        {% if github_data.get('bio') %}
+        <dt>Bio</dt>
+        <dd>{{ github_data.bio }}</dd>
+        {% endif %}
+    </dl>
+
+    {% if github_data.get('repositories') %}
+    <h4 style="margin-top: 1rem;">Recent Repositories</h4>
+    <ul class="repo-list">
+        {% for repo in github_data.repositories[:10] %}
+        <li class="repo-item">
+            <a href="{{ repo.url }}" target="_blank" rel="noopener"><strong>{{ repo.name }}</strong></a>
+            {% if repo.description %}<p>{{ repo.description }}</p>{% endif %}
+            <small>{% if repo.language %}{{ repo.language }} · {% endif %}★ {{ repo.stars }}</small>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if linkedin_data %}
+<div class="card" style="margin-top: 1.5rem;">
+    <h3>LinkedIn Profile</h3>
+    <dl class="detail-list">
+        <dt>Full Name</dt>
+        <dd>{{ linkedin_data.get('full_name', '—') }}</dd>
+        <dt>Headline</dt>
+        <dd>{{ linkedin_data.get('headline', '—') }}</dd>
+        <dt>Email</dt>
+        <dd>{{ linkedin_data.get('email', '—') }}</dd>
+    </dl>
+</div>
+{% endif %}
+{% endblock %}
