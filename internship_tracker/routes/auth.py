@@ -2,7 +2,7 @@
 
 import logging
 
-from flask import Blueprint, flash, redirect, render_template, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from models.user import User
@@ -94,7 +94,25 @@ def github_callback():
 def linkedin_callback():
     """Handle LinkedIn OAuth callback."""
     try:
-        token = oauth.linkedin.authorize_access_token()
+        if request.args.get("error"):
+            raise Exception(
+                request.args.get("error_description") or request.args.get("error") or "LinkedIn OAuth error"
+            )
+
+        state = request.args.get("state")
+        code = request.args.get("code")
+        state_data = oauth.linkedin.framework.get_state_data(session, state)
+
+        if not state_data:
+            raise Exception("Missing or invalid OAuth state for LinkedIn callback.")
+
+        oauth.linkedin.framework.clear_state_data(session, state)
+
+        redirect_uri = state_data.get("redirect_uri") or get_redirect_uri("linkedin")
+        token = oauth.linkedin.fetch_access_token(
+            redirect_uri=redirect_uri,
+            code=code,
+        )
         if not token:
             flash("LinkedIn authentication failed.", "error")
             return redirect(url_for("auth.login"))

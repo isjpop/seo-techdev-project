@@ -1,5 +1,7 @@
 """Authentication tests."""
 
+from services.oauth import handle_oauth_error
+
 
 def test_login_page_renders(client):
     """Login page should be accessible without authentication."""
@@ -23,3 +25,22 @@ def test_logout_redirects(client, auth_client):
     response = client.get("/logout", follow_redirects=True)
     assert response.status_code == 200
     assert b"Internship Tracker" in response.data
+
+
+def test_handle_oauth_error_uses_provider_error_message(app):
+    """OAuth helper should surface provider error details when available."""
+    with app.test_request_context(
+        "/auth/callback/linkedin?error=access_denied&error_description=Bad+scope"
+    ):
+        response = handle_oauth_error("linkedin", Exception("oauth failed"))
+
+        assert response.status_code == 302
+        assert response.location.endswith("/login")
+
+
+def test_linkedin_oidc_metadata_configured(app):
+    """LinkedIn OAuth client should use the provider metadata document."""
+    assert (
+        app.config["LINKEDIN_SERVER_METADATA_URL"]
+        == "https://www.linkedin.com/oauth/.well-known/openid-configuration"
+    )

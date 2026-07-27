@@ -20,6 +20,10 @@ class Config:
     GITHUB_CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET", "")
     LINKEDIN_CLIENT_ID = os.environ.get("LINKEDIN_CLIENT_ID", "")
     LINKEDIN_CLIENT_SECRET = os.environ.get("LINKEDIN_CLIENT_SECRET", "")
+    LINKEDIN_SERVER_METADATA_URL = os.environ.get(
+        "LINKEDIN_SERVER_METADATA_URL",
+        "https://www.linkedin.com/oauth/.well-known/openid-configuration",
+    )
     OAUTH_REDIRECT_BASE = os.environ.get("OAUTH_REDIRECT_BASE", "http://localhost:5000")
 
     # Uploads
