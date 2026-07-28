@@ -44,34 +44,6 @@ cp .env.example .env
 # Edit .env with your OAuth credentials
 ```
 
-## OAuth Configuration
-
-### GitHub
-
-1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
-2. Create a new OAuth App
-3. Set **Authorization callback URL** to: `http://localhost:5000/auth/callback/github`
-4. Copy Client ID and Client Secret to `.env`
-
-### LinkedIn
-
-1. Go to [LinkedIn Developer Portal](https://www.linkedin.com/developers/apps)
-2. Create a new app
-3. Add redirect URL: `http://localhost:5000/auth/callback/linkedin`
-4. Request access to **Sign In with LinkedIn using OpenID Connect**
-5. Copy Client ID and Client Secret to `.env`
-
-### Environment Variables
-
-```env
-SECRET_KEY=your-secret-key
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-LINKEDIN_CLIENT_ID=your_linkedin_client_id
-LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
-OAUTH_REDIRECT_BASE=http://localhost:5000
-```
-
 ## Running Locally
 
 ```bash
