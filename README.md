@@ -1,6 +1,6 @@
 # Introducing our SEO Tech Developer Final Project
 
-Created by Juan Pablo Flores Villarreal, Aqila Nasiry, and Sebastian hernandez
+Created by Juan Pablo Flores Villarreal, Aqila Nasiry, and Sebastian Hernandez
 
 ## Internship Tracker
 
