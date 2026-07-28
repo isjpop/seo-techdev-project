@@ -1,7 +1,6 @@
 """OAuth 2.0 configuration and helpers."""
 
 import logging
-from urllib.parse import unquote_plus
 
 from authlib.integrations.flask_client import OAuth
 from flask import current_app, flash, redirect, request, url_for
@@ -10,6 +9,10 @@ logger = logging.getLogger(__name__)
 
 oauth = OAuth()
 
+PROVIDER_DISPLAY_NAMES = {
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+}
 
 def init_oauth(app):
     """Register OAuth providers with the Flask app."""
@@ -48,13 +51,10 @@ def get_redirect_uri(provider: str) -> str:
 
 def handle_oauth_error(provider: str, error: Exception):
     """Handle OAuth failures with user-friendly messages."""
-    provider_name = provider.title()
+    provider_name = PROVIDER_DISPLAY_NAMES.get(provider, provider.title())
     query_error = request.args.get("error")
     query_description = request.args.get("error_description")
     details = query_description or query_error or str(error)
-
-    if query_description:
-        details = unquote_plus(query_description)
 
     logger.error(
         "OAuth error for %s. query_error=%s query_description=%s exception=%s",

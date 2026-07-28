@@ -1,6 +1,7 @@
 """Authentication tests."""
 
 from services.oauth import handle_oauth_error
+from flask import get_flashed_messages
 
 
 def test_login_page_renders(client):
@@ -37,6 +38,9 @@ def test_handle_oauth_error_uses_provider_error_message(app):
         assert response.status_code == 302
         assert response.location.endswith("/login")
 
+        messages = get_flashed_messages(with_categories=True)
+        assert messages == [("error", "LinkedIn authentication failed: Bad scope")]
+
 
 def test_linkedin_oidc_metadata_configured(app):
     """LinkedIn OAuth client should use the provider metadata document."""
@@ -44,3 +48,21 @@ def test_linkedin_oidc_metadata_configured(app):
         app.config["LINKEDIN_SERVER_METADATA_URL"]
         == "https://www.linkedin.com/oauth/.well-known/openid-configuration"
     )
+
+
+def test_handle_oauth_error_falls_back_to_exception_message(app):
+    """When the provider gives no query error, the exception message should be used."""
+    with app.test_request_context("/auth/callback/github"):
+        response = handle_oauth_error("github", Exception("token exchange failed"))
+
+        messages = get_flashed_messages(with_categories=True)
+        assert messages == [("error", "GitHub authentication failed: token exchange failed")]
+
+
+def test_handle_oauth_error_generic_message_when_no_details(app):
+    """When there's no query error and the exception has no message, use the generic copy."""
+    with app.test_request_context("/auth/callback/github"):
+        response = handle_oauth_error("github", Exception())
+
+        messages = get_flashed_messages(with_categories=True)
+        assert messages == [("error", "Authentication with GitHub failed. Please try again.")]
