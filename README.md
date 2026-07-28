@@ -29,7 +29,7 @@ storing and tracking of different resume and cover letter versions.
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/isjpop/seo-techdev-project
 cd internship_tracker
 
 # Create virtual environment
