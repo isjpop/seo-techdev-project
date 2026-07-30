@@ -5,9 +5,12 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, render_template
+
+load_dotenv()
+
+from flask import Flask, flash, redirect, render_template, url_for
 from flask_login import LoginManager
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFError, CSRFProtect
 
 from config import Config
 from models.user import User
@@ -18,8 +21,6 @@ from routes.documents import documents_bp
 from routes.profile import profile_bp
 from services.database import db, init_db
 from services.oauth import init_oauth
-
-load_dotenv()
 
 login_manager = LoginManager()
 csrf = CSRFProtect()
@@ -50,7 +51,10 @@ def create_app(config_class=Config):
 
     @login_manager.user_loader
     def load_user(user_id):
-        return db.session.get(User, int(user_id))
+        try:
+            return db.session.get(User, int(user_id))
+        except (TypeError, ValueError):
+            return None
 
     return app
 
@@ -85,6 +89,12 @@ def _register_error_handlers(app):
         db.session.rollback()
         app.logger.error("Internal server error: %s", error)
         return render_template("500.html"), 500
+
+    @app.errorhandler(CSRFError)
+    def csrf_error(error):
+        app.logger.warning("CSRF validation failed: %s", error.description)
+        flash("Your session expired or the form was invalid. Please try again.", "error")
+        return redirect(url_for("auth.login"))
 
 
 app = create_app()
